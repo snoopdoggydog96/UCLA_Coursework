@@ -1,0 +1,73 @@
+NAME: Anup Kar
+EMAIL: akar@g.ucla.edu
+ID: 204419149
+
+****RUNNING ./P1B_check.sh 204419149 after creating the tarball running the make dist command checks the functionality of the program described in the specifications*****
+
+a. SOURCES
+   SAME CITATIONS FROM PROJECT 1A!
+   i. Terminal Attributes (termios, tcgetattr, tcsetattr)
+         https://www.gnu.org/software/libc/manual/html_node/Noncanon-Example.html
+	 https://linux.die.net/man/3/tcgetattr
+
+   ii. System Calls unrelated to Interprocess Communication between Shell and Terminal(read, write etc..)
+
+         http://man7.org/linux/man-pages/man2/write.2.html
+	 http://man7.org/linux/man-pages/man2/read.2.html
+
+   iii. Fork()/execvp() and Pipe()/dup2() and close()/kill() for creating a child for interprocess communication between parent and child processes via pipeline and then killing() child process and closing all open file descriptors assosciated with each process (SHUTDOWN PROCESSING).
+
+   	 http://man7.org/linux/man-pages/man2/fork.2.html
+	 http://man7.org/linux/man-pages/man3/exec.3.html
+
+         https://linux.die.net/man/2/pipe
+	 http://man7.org/linux/man-pages/man2/pipe.2.html
+	 https://www.geeksforgeeks.org/c-program-demonstrate-fork-and-pipe/
+
+         http://man7.org/linux/man-pages/man2/close.2.html
+	 http://man7.org/linux/man-pages/man2/kill.2.html
+
+   iv. Using poll() and pollfds for strict alternation of interprocess communication
+         http://www.linux-mag.com/id/357/
+	 https://linux.die.net/man/2/poll
+	 http://man7.org/linux/man-pages/man2/poll.2.html
+
+   v. waitpid() for Shutdown Processing after child process executes succesfully.
+         https://linux.die.net/man/2/waitpid
+	 http://man7.org/linux/man-pages/man2/waitpid.2.html
+	 http://man7.org/linux/man-pages/man2/kill.2.html
+
+NEW CITATIONS NEEDED FOR PROJECT 1B
+
+   vi. Socket Programming
+   	  http://man7.org/linux/man-pages/man7/socket.7.htm
+   vii. Zlib Usage
+   	  https://www.zlib.net/manual.html
+	  https://www.zlib.net/zlib_how.html
+	  https://www.zlib.net/zpipe.c
+
+b. Makefile
+   make clean - returns directory to freshly untared state
+   make dist - builds lab1b tarball from lab1b-server.c and lab1b-client.c 
+   make - creates executable named lab1b-server and lab1b-client
+
+c. Usage/Comments
+   Server:
+	a. --port #(required)
+	   i. Initialize a socket() (TCP/AF_INET) and check the system has an available socket to bind a port # to, if not throw an error.   
+	   ii. Bind() a port number required by the user, throw an error if the port # is in use. 	       a. saves the necessary server info in the struct sockaddr_in serv_addr
+	      b. Initialize Child process to exec a Shell and pass sent Client Data to shell, and shell output from Server to shell. 
+	   iii. Listen() for client requests to sockfd
+	   iv. If a client makes a request, use the accept() function call save the necessary client info in the struct sockaddr_in cli_addr as well as relaying serv_addr to the client for communication over the specified Internet Protocol.
+	   v. IPC OVER TCP/IP
+	      a. This was exactly what we did in Project1a, with the difference being how IPC is conducted by using newsockfd as our STDIN file descriptor to read/write data between client and server over a specified Internet Protocol.
+
+	b. --compress (not required)
+	   vi. Compression before IPC over TCP/IP (by far the most difficult part of project)
+	       a. The client must compress the data to send  using the infWrapper function which is heavily modeled after the inf() function referred to in the sources.
+	       b. The server must decompress the sent data from the client using the defWrapper function which is heavily modeled after the inf() function referred to in the sources. 
+	   
+   	c. --log (not required)
+	  vii.  NO COMPRESS FLAG:  Keep track of all bytes Sent by Client and Received from Server.
+	  viii. COMPRESS FLAG: log contains random text that is seemingly garbage however the functionality remains the same (i.e. byte redution achieved w/o altering functionality of program)
+		
