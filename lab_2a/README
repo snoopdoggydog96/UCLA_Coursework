@@ -1,0 +1,101 @@
+BBNAME: Anup Kar
+EMAIL: akar@g.ucla.edu
+ID: 204419149
+SLIPDAYS: 2
+
+a. Answers to Questions
+
+QUESTION 2.1.1 - Causing Conflicts: 
+a) Why does it take many iterations before errors are seen?
+b) Why does a significantly smaller number of iterations so seldom fail?
+Answer: 
+a) We can cause conflicts with any unprotected add with threads>1 and iterations>=1000. Conflicts only occur with iterations ~= 1000 because after 1000 iterations the thread is probably preempted (i.e. it has taken its entire time slice so the scheduler does a context switch to the next thread/process to run).A context switch occurs and the next thread runs - with an incorrect counter - as the previous thread was never able to finish adding 1 and subtracting 1. Thus the next thread runs with an incorrect value. ONLY OCCURS WITH MANY ITERATIONS!.   
+b) With fewer iterations, the likelihood that a thread is preempted is significantly lowered. Each thread can complete its task w/o the scheduler interfering and causing conflicts due to scheduling. 
+
+QUESTION 2.1.2 - cost of yielding:
+a) Why are the --yield runs so much slower?
+b) Where is the additional time going?
+c) Is it possible to get valid per-operation timings if we are using the --yield option?
+If so, explain how. If not, explain why not.
+Answer:
+a) Yielding means the threads gives up CPU, allowing another thread to enter critical section. 
+This forcing of context switches adds additional overhead to the scheduler that may already have preempted another process, on top of the additional time for the saving of the thread registers and state, performing the context switch, & running the next thread. 
+b) Additional Time coming from -  Time to save the registers & states + context_switch + scheduler must be updated + interuption of thread that yields CPU and rexecution of new thread that gets CPU  
+c) It is not possible to get valid per-op timings using the --yield option. We are using the getclocktime() function which uses a "Clock" time (i.e. stopwatch) which differs from the "time slice" that the internal scheduler of a multi-core processor may use when many threads are present. We have no tools to view if many threads are executing concurrently on different cores herego no possible way to get valid per-op time with --yield.  
+
+QUESTION 2.1.3 - measurement errors:
+a) Why does the average cost per operation drop with increasing iterations?
+b) If the cost per iteration is a function of the number of iterations, how do we know how many iterations to run (or what the "correct" cost is)?
+Answers:
+a) Average Cost Per Operation drops with increasing iterations because each thread will finish executing "more" instructions during its time slice before being preempted by the scheduler. 
+Although there is an added overhead for the context switch when the Processor does preempt the thread, with many iterations, the additional overhead of creating each thread and saving context/registers/state of each thread is significantly lesser then the actual work that must be done by the thread iteslf. 
+
+b) Cost Per Iterations as Function of Number of Iterations: 
+Increasing the number of operations (i.e. iterations/tasks the thread must perform), the relative cost of creating thread is significantly less then time spent executing the actual add 1, subtract 1.
+Increasing iterations allows us to see true cost of context switching. 
+
+QUESTION 2.1.4 - costs of serialization:
+a) Why do all of the options perform similarly for low numbers of threads?
+b) Why do the three protected operations slow down as the number of threads rises?
+Answer:
+a) 
+Lower amount of threads means lower probability of contention over a shared resource.
+With unprotected adds this results in higher probability that a thread enters a critical section when its not supposed too - race conditions likely to occur (conflicts) 
+With protected adds, using fewer threads results in better over all run-times. This is due to fewer context switches between threads over a shared resource. Either the thread finishes its work and gives up the CPU or it is interuppted and a context switch is performed. Regardless, fewer threads means less saving of thread states/registers and more time for the execution of the actual add, subtract 1.
+All forms of protected Adds perform similarly, because again, fewer threads results in probably less context switches and less convoy formation over shared resources that can cause unnecessary overhead. 
+b)
+As mentioned above, increasing the number of threads increases overhead of context switches because now Scheduler must save state/registers of all running threads & increases the contention over a shared resource (which in turn can cause more context switches). This is due to the nature of locking and spin waits, each thread must either wait for the lock to be locked/unlocked or for some value to = 0 before it can enter the critical section. Unnecessary resources are being wasted as many threads spin/wait or do nothing while another thread is executing the critical section. 
+
+QUESTION 2.2.1 - scalability of Mutex
+Compare the variation in time per mutex-protected operation vs the number of threads in Part-1 (adds) and Part-2 (sorted lists).
+Comment on the general shapes of the curves, and explain why they have this shape.
+Comment on the relative rates of increase and differences in the shapes of the curves, and offer an explanation for these differences
+
+Answers: 
+Looking at the .png files created by the data reduction scripts, we can see that the time per mutex-protected operation versus number of threads in Part 1 (adds) and Part-2 Sorted lists are almost exactly similar w/ few threads/inserts & deletes. Both adds and lists are making changes to a shared resource and require some sort of locking mechanism. Increasing the number of threads increases the likelihood of contention over the shared resource and also adds costs to context switches for the Scheduler.
+In general, increasing threads adds overhead of peroforming synchronization mechanisms suchg as locking increases.  
+However, the Part-2 sorted lists with many threads, performs significantly worse then the adds do because of the additional overhead that occurs when placing a lock/unlock around the entire list data_structure during a lookup/delete &/or an insert (SIGNIFICANT OVERHEAD). This does not occur for adds because the only operations to perform are simply adding or subtracting to a shared resource.  
+
+QUESTION 2.2.2 - scalability of spin locks
+Compare the variation in time per protected operation vs the number of threads for list operations protected by Mutex vs Spin locks. Comment on the general shapes of the curves, and explain why they have this shape.
+Comment on the relative rates of increase and differences in the shapes of the curves, and offer an explanation for these differences.
+
+The trend of costs per operation versus number of threads for list operations protected by Mutex versus Spin Locks is clearly depicted in the graphs.
+While both Mutex and Spin Locks perform worse with an increasing number of threads, Mutexes perform better in almost every other case. However if the # of threads ~= # Cores, spin-lock will perform significantly better then Mutex operations will (an indication that we have the right amount of threads and cores so that no thread is kept busy spin_waiting and can move along to another task i.e. properly exploiting parallelism)
+
+Mutex Locking have different overheads then spinlocks (i.e. pthread_mutex_init(myMutex) but may also have lower level implementations. Spin-locks are simply implemented and can waste many CPU cycles doing nothing waiting for a thread toyield the CPU. Mutexes are well documented and implemented by the pthread_library and are in general a much better/faster approach to implementing parallelism in a program. This can be seen clearly in the graphs, with Mutex Protected operations performing better then Spin Lock in every case where #threads != 8 (implying we are running on an 8 core machine). 
+
+b. Makefile
+   make clean - returns directory to freshly untared state
+   make dist - targets: graphs
+   	i. Creates a tarball with all necessary .csv, .png, .gp, .c & .h files. 
+   make graphs - targets: tests
+   	i. data reduction scripts on .csv files to create .png graphs
+   make build - compiles all executables
+   make tests - targets: clean build
+   	i. Cleans up old executables and recompiles them, then runs hundreds of tests - as specified clearly by Project2a spec -  and appends the comma seperated output of lab2_add and lab2_list to lab2_add.csv and lab2_list.csv 
+		
+c. Included Files:
+
+lab2_add.c: specify number of threads/iterations to generate .csv with different --yield and synchronization options for protected and unprotected adds and output to .csv file for analysis. 
+
+lab2_list.c: specify what operations to be performed on linked list and what synchronization options to use, output data to .csv file for analysis.
+
+lab2_add.csv: data created by running lab2_add executubale with different CLI flags (make tests)
+
+lab2_list.csv: data created by running lab2_list executable with different CLI flags (make tests)
+
+Graphs: All graphs generated from data reduction scripts lab2_add.gp and lab2_list.gp that take in lab2_add.csv and lab2_list.csv as input and create the following graphs. 
+lab2_add-1.png 
+lab2_add-2.png
+lab2_add-3.png 
+lab2_add-4.png 
+lab2_add-5.png
+lab2_list-1.png
+lab2_list-2.png
+lab2_list-3.png
+lab2_list-4.png
+
+Makefile - different options specified above. 
+
+README
