@@ -1,0 +1,3 @@
+18:33:17 nan
+OFF
+18:33:17 SHUTDOWN

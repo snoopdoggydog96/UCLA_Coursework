@@ -1,0 +1,53 @@
+#NAME: Anup Kar
+#UID: 204419149
+#EMAIL: akar@g.ucla.edu
+
+Sources/Comments:
+https://www.ev3dev.org/docs/tutorials/setting-up-wifi-using-the-command-line/
+
+/*For some reason after running ifconfig my beaglebone was not able to find my home personal network. After doing some research and seeing that conmanctl had come either installed on my beaglebone or i had downloaded in build-universe (which i apt-get installed/updated/upgraded or some other general package) I decided to ensure WiFi capability by running conmanctl, enable wifi, scan wifi, and connecting to the specific wifi_name just as this guide specifies.
+*/
+
+https://data.iana.org/time-zones/tz-link.html
+
+/*One issue I encountered was with the BeagleBone always syncing to the wrong time-zone. I ran date at cli to see what the current settings were and they were not the same. To resolve this I downloaded the tz database and ran the tzselect command and created a rule in my roots .profile folder (so when sshing through root it will automatically sync the correct the right time-zone). */
+
+The commands to build the tz database are as follows:
+
+>mkdir tzdb
+>cd tzdb
+>wget https://www.iana.org/time-zones/repository/tzcode-latest.tar.gz
+>wget https://www.iana.org/time-zones/repository/tzdata-latest.tar.gz
+>gzip -dc tzcode-latest.tar.gz | tar -xf -
+>gzip -dc tzdata-latest.tar.gz | tar -xf -
+
+The commands I used to set the TZ environment variable in my roots .profile.
+One can also use tzselect() and manually go through the TZ's prompts to set the timezone correctly everytime.
+I found automating it and adding it to my roots .profile with the following lines to be much simpler.
+
+>TZ='America/Los_Angeles'; export TZ;
+
+>. ~/.profile / *This command allowed me to see the time-zone change immediately.  */
+
+!!!!NOTE!!!! *** I included these 2 lines of code in my Makefile, depending on what system you are running and what priveleges are granted means it may not correctly sync to the TZ one may particularly want. Simply either run tzseleect or go to the Makefile and input the approriate TZ***  
+
+
+https://linux.die.net/man/8/tzselect
+/* I first ran this command and then saw the suggestion to add the rule to my roots .profile, which i promptly did to ensure I would not have to go through tzselects prompts everytime I wanted to run the program on my board. */
+
+Included Files:
+main.c README Makefile
+
+Makefile Options:
+
+build: builds the lab4b executable with the proper libraries linked (-lmraa and -lm)
+dist: builds lab4b tarball from Included Files
+clean: removes all files to freshly untarred state
+check: setenv test
+       sets the environment, runs the sanity script and tests for bogus arguments. 
+setenv: syncs the timezone to the specified TZ='timezone_goes_here'; export TZ; (assuming tzb is downloaded) 
+test: checks for bogus arguments 
+
+Comments:
+
+
