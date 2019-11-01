@@ -2,6 +2,10 @@
 #UID: 204419149
 #EMAIL: akar@g.ucla.edu
 
+***TO TEST FUNCTIONALITY OF PROGRAM*** 
+***run the make dist command to create a tarball labeled lab4b-204419149.tar*** 
+***run the command ./P4B_check.sh 204419149 to check functionality of the program against test cases***
+
 PROJECT OBJECTIVES:
 Primary: Demonstrate the ability to design, build and debug interactive applications on an embedded system.
 Primary: Develop the ability to work with embedded system sensors and actuators through standard tool kits.
