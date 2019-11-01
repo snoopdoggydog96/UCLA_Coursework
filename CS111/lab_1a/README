@@ -1,0 +1,248 @@
+NAME: Anup Kar
+EMAIL: akar@g.ucla.edu
+ID: 204419149
+
+***TO TEST FUNCTIONALITY OF PROGRAM*** 
+***run the make dist command to create a tarball labeled lab1a-204419149.tar*** 
+***run the command ./P1A_check.sh 204419149 to check functionality of the program against test cases***
+
+CONTENTS OF README:
+a. PROJECT SPEC
+b. Sources
+   i. Terminal Attributes (termios, tcgetattr, tcsetattr)
+   ii. System Calls not involving interprocess communication - read, write, etc.
+   iii. Fork(), execvp() and, pipe() dup2() close() kill(),interprocess communication between child and parent process
+   iv. Using poll() and pollfds for interprocess communication
+   v. waitpid() for shutdown processing after child process has executed succesfully 
+
+c. Makefile
+   i.  Options
+
+d. Usage
+   i.  --shell
+   ii.  No Args	
+
+e. Comments
+
+PROJECT OBJECTIVES:
+Demonstrate the ability to research new APIs and debug code that exploits them
+Exploit the following OS features:
+Terminal I/O and modes (as an example of a complex API set)
+Polled I/O (a means of awaiting input from multiple sources)
+Inter-process communication
+Exception handling
+Develop a multi-process application
+Develop debugging skills for multi-process and non-deterministic problems
+DELIVERABLES:
+A single tarball (.tar.gz) containing:
+
+a single C source module that compiles cleanly (with no errors or warnings).
+a Makefile to build the program (compiling it with the -Wall and -Wextra options) and the tarball. You are not required to include a check target in this Makefile, but it should support the standard default, clean and dist targets.
+a README file describing each of the included files and any other information about your submission that you would like to bring to our attention (e.g., research, limitations, features, testing methodology).
+PROJECT DESCRIPTION:
+You will write a program that compiles to an executable named lab1a, that accepts the command line argument --shell (explained below).
+Study the following manual sections:
+termios(3), tcgetattr(3), tcsetattr(3), etc. ... for manipulating terminal attributes
+fork(2) ... for creating new processes
+waitpid(2) ... to allow one process to monitor another process's state, and react to changes in state
+exec(3) ... a family of calls for loading a new program into a running process
+pipe(2) ... for inter-process communication
+kill(3) ... for sending signals to processes by PID
+strerror(3) ... descriptions associated with system call errors
+poll(2) ... to wait for the first of multiple input sources
+Character-at-a-time, full duplex terminal I/O
+Write a program (executable should be called lab1a) to:
+put the keyboard (the file open on file descriptor 0) into character-at-a-time, no-echo mode (also known as non-canonical input mode with no echo). It is not suggested that you attempt to construct a set of correct terminal modes from scratch, as there are numerous subtle options, most of which will render your terminal window unusable if incorrectly set. Rather, it is suggested that you get the current terminal modes, save them for restoration, and then make a copy with only the following changes:
+
+	c_iflag = ISTRIP;	/* only lower 7 bits	*/
+	c_oflag = 0;		/* no processing	*/
+	c_lflag = 0;		/* no processing	*/
+			
+and these changes should be made with the TCSANOW option. Note that this sort of mode change may result in the flushing of queued input or output characters. Thus the modes should be set immediately on start-up (before any characters are entered) and reset as the last thing before shutdown (after all returned output has been processed).
+read (ASCII) input from the keyboard into a buffer. In character-at-a-time mode, you get characters as soon as they are typed, without waiting for a newline. In most cases you will only get one character for each read, but if the system is running slowly and you type fast multiple characters may have accumulated by the time you issue your read. Thus you should do a larger read (for whatever your buffer size is) and process all the characters you receive.
+map received <cr> or <lf> into <cr><lf> (see below for a note on carriage return, linefeed, and EOF).
+write the received characters back out to the display, as they are processed.
+upon detecting a pre-defined escape sequence (^D), restore normal terminal modes and exit (hint: do this by saving the normal terminal settings when you start up, and restoring them on exit).
+Note: You will surely have your program exit without properly restoring modes, after which your terminal session may seem unusable. Get familiar with the stty sane option of stty(1). If your program exists with your terminal modes in some unusable state, you can usually fix it by typing ^J stty sane ^J, where ^J is a control-J (or linefeed character).
+
+Passing input and output between two processes
+Extend and refactor your program to support a --shell argument to pass input/output between the terminal and a shell:
+fork to create a new process, and then exec a shell (/bin/bash, with no arguments other than its name), whose standard input is a pipe from the terminal process, and whose standard output and standard error are (dups of) a pipe to the terminal process. (You will need two pipes, one for each direction of communication, as pipes are unidirectional.)
+read (ASCII) input from the keyboard, echo it to stdout, and forward it to the shell. <cr> or <lf> should echo as <cr><lf> but go to shell as <lf>.
+read input from the shell pipe and write it to stdout. If it receives an <lf> from the shell, it should print it to the screen as <cr><lf>.
+We type one character at a time, and so each read(2) from the keyboard is likely to return only one character, even if we do the read for a much larger number of characters. But a shell command may generate many lines, so reads from the shell are likely to return many more characters. It is suggested that you should do a large (e.g., 256 byte) read, and then process however many characters you actually receive.
+
+Data should be passed in both directions as soon as it is received. Do not wait until you encounter a newline. The shell can process character-at-a-time input, and many commands generate output that is not followed by a newline.
+The trick here is that will not be a strict alternation between input from the keyboard and input from the shell. Either is capable of generating input at any time. If we do a read(2) from the keyboard, we will block until keyboard input becomes available, even if there is input from the shell pipe waiting for us! The poll(2) system call enable us to solve this problem:
+
+Create an array of two pollfd structures, one describing the keyboard (stdin) and one describing the pipe that returns output from the shell.
+Have both of these pollfds wait for either input (POLLIN) or error (POLLHUP, POLLERR) events.
+Write a main loop that calls poll(2) (timeout=0) and then only reads from a file descriptor if it has pending input (as reported in the corresponding revents field).
+It is possible that by the time we do our final poll the shell will have both returned its final output and exited, so that there will be multiple events (e.g. POLLIN, and POLLHUP) associated with the pipe from the shell. Always process all available input before processing the shut-down indication. Otherwise you may discard the final output.
+You should now be able to type shell commands to your program, see them echoed as you type them, and then see the output from the shell (and any command you run under it).
+
+Because we have disabled all of the normal input processing, the interrupt character (^C) becomes just another character. When your program reads a ^C (0x03) from the keyboard, it should use kill(2) to send a SIGINT to the shell process. Note that the shell will not necessarily die as a result of receiving this signal.
+
+You may find it easier to tell if your program has recognized a ^C or ^D if, rather than echoing them directly back to the screen, you translate each into a standard graphical representation (echoing a caret in front of the letter: ^C or ^D).
+
+You may find debugging complicated by the fact that it is not obvious which process did or did not receive or generate which character when. If you add a --debug option to your program that enables copious logging (e.g., to stderr) of every processed character and event, you may find that this greatly facilitates the debugging process.
+
+shutdown processing:
+Upon receiving an EOF (^D, or 0x04) from the terminal, close the pipe to the shell, but continue processing input from the shell. We do this because there may still be output in transit from the shell.
+NOTE that a reader (e.g., your shell) will not get an end-of-file from a pipe until (all copies of) the write file descriptor (in all processes that share it) are closed. This means you have to close pipe file descriptors:
+
+in processes that don't use that end of that pipe.
+after your process is through writing to it (e.g., because you received an ^D)
+The same is true of the pipe back from the shell to your process. Your poll will not return an error and your read will not return an EOF until the last write file descriptor associated with that pipe has been closed.
+
+Upon receiving EOF or polling-error from the shell, we know that (after we process the data already in the pipe) there will be no more output coming from the shell.
+Our first indication that the shell has shut down might also be the receipt of a SIGPIPE from a write to the pipe to the shell (i.e., because the shell has exited).
+After you have closed the write pipe to the shell and processed the final output returned from the shell, you should collect the shell's exit status (using waitpid(2) or a related function to await the process' completion and capture its return status) and report it to stderr in a line of the form:
+SHELL EXIT SIGNAL=# STATUS=#
+where the first # is the low order 7-bits (0x007f) of the shell's exit status and the second # is the next higher order byte (0xff00) of the shell's exit status (both decimal integers).
+
+Note that the three normal shut-down scenarios (closing the pipe from the keyboard reader, receiving a SIGPIPE from the keyboard reader, and receiving an EOF from the shell reader) are not mutually independent. It is likely that, no matter how the shut-down is initiated, multiple of these events will occur in a non-deterministic order.
+
+error checking
+Check for errors after all system calls. If system calls fail (for reasons other than shell shutdown) or arguments are unrecognized, print a meaningful error message to standard error, and exit with a return code of 1.
+Summary of exit codes:
+
+0 ... normal execution, shutdown on ^D
+1 ... unrecognized argument or system call failure
+
+
+
+a. SOURCES
+   i. Terminal Attributes (termios, tcgetattr, tcsetattr) 
+         https://www.gnu.org/software/libc/manual/html_node/Noncanon-Example.html
+         https://linux.die.net/man/3/tcgetattr
+
+   ii. System Calls unrelated to Interprocess Communication between Shell and Terminal(read, write etc..)
+         http://man7.org/linux/man-pages/man2/write.2.html 
+*    	 http://man7.org/linux/man-pages/man2/read.2.html
+
+   iii. Fork()/execvp() and Pipe()/dup2() and close()/kill() for creating a child for interprocess communication between parent and child processes via pipeline and then killing() child process and closing all open file descriptors assosciated with each process (SHUTDOWN PROCESSING).
+      	 http://man7.org/linux/man-pages/man2/fork.2.html 
+   	 http://man7.org/linux/man-pages/man3/exec.3.html
+	 
+	 https://linux.die.net/man/2/pipe
+	 http://man7.org/linux/man-pages/man2/pipe.2.html
+	 https://www.geeksforgeeks.org/c-program-demonstrate-fork-and-pipe/
+	 
+   	 http://man7.org/linux/man-pages/man2/close.2.html
+	 http://man7.org/linux/man-pages/man2/kill.2.html
+ 
+   iv. Using poll() and pollfds for strict alternation of interprocess communication
+         http://www.linux-mag.com/id/357/
+         https://linux.die.net/man/2/poll
+         http://man7.org/linux/man-pages/man2/poll.2.html
+   
+   v. waitpid() for Shutdown Processing after child process executes succesfully.  
+         https://linux.die.net/man/2/waitpid
+         http://man7.org/linux/man-pages/man2/waitpid.2.html
+         http://man7.org/linux/man-pages/man2/kill.2.html
+
+
+      
+b. MAKEFILE
+   i. MAKEFILE OPTION EXPLANATIONS:
+
+   lab1a: Build the lab1a executable. Compiled with -Wall, -Wextra as per the spec, -g for debug info and -02 for extra optimzation. 
+   
+   dist: Creates a tarball with the files lab1a.c Makefile, README
+
+   clean: Restore the directory to its freshly untarred state.  
+
+
+
+c. USAGE
+	i. --shell: Child executes /bin/bash and passes in input from Parent Process(terminal) to execute and passes output back to Parent Process (terminal) to be displayed. 
+	   a. fork() to create a new process exec("/bin/bash"..) STDIN: PIPE FROM PARENT PROCESS( to_child[0] ) and STDOUT STDERR: dup2(from_child[1], STDOUT_FILENO,...) dup2(from_child[1], STDIN_FILENO) are dups of a pipe to terminal process. 
+	   b. This will require 2 pipes 
+	   c. read() from STDIN, echo to stdout and forward to shell
+	   d. <cr> or <lf> should echo as <cr><lf> but go to shell as <lf> ('\n')
+	   e. Read input from_child (shell pipe) and write it to stdout, receiving <lf> from shell should echo as <cr><lf>
+	   f. read large amount of bytes from_child (shell pipe) until EOF and then do SHUTDOWN PROCESSING
+	   g. Input from Shell and input from keyboard both capable of producing input at same time so Use poll to strictly alternate input between the 2
+	   h. Create an array of pollfd structures, one describiing keyboard (STDIN) and one describing from_shell[1] (returns outpt from_child process)
+	   i. pollfds.events = POLLIN|POLLHUP|POLLERR; 
+	   j. Call poll(), only read from a file descriptor if it has pending input (reported in pollfds.revents) 
+	   k. Make sure all output is read from both pipes after one has finished reading/writing to the pipe (for good) 
+	   l. SHUTDOWN PROCESSING
+	      	       i. EOF (^D) from TERMINAL, close pipe to shell (to_child[0]) but continue processing shell output generation (because the bash commands may produce output after executed)
+		       ii. WE HAVE TO CLOSE FILE DESCRIPTORS FOR FOLLOWING SCENARIOS
+		       	   a. in processes that do not use that end of pipe
+			   b. after process is through writing to it (received EOF ^D)
+ 		       iii. Polling Error or EOF 
+		       	    a. Know there is no more output coming from SHELL (after processing data in the pipe going to the shell)  
+			    b  SIGPIPE may also be an indication SHELL is closed 
+			    c. Collect the Shells Exit status using waitpid() to capture return status depending on how the child exited (its return status) 
+    
+	ii. No Args: Character at a time, full duplex terminal I/O
+	    a. Put keyboard into character-at-a-time, no-echo mode  e.g. NON-CANONICAL INPUT MUDE WITH NO ECHO
+	    b. Do this by getting current terminal attributes and saving them for restoration later
+	    c. Change three flags specified in spec and set the terminal attributes with tcgetattr() and make changes immediately (TCSANOW passed to tcgetattr(, TCSANOW, )
+	    d. read() from STDIN for an arbitrary amount of size regardless of the fact it is single character at a time
+	    e. Map <cr> or <lf> into <cr><lf>
+	    f. Write back out characters as they are typed (write to STDOUT_FILENO)
+	    g. Upon detecting ^D restore terminal attributes (tcsetattr(use saved restoration from earlier)) and exit
+
+
+
+
+d. Comments
+
+One difficult part I found of this project was understanding the termios structures and function calls such as tcsetattr() and tcgetattr() and how to use the struct termios.
+Hitting the man pages noted above I was able to implement single-character-at-a-time duplex terminal (non-canonical mode with no echo), which simply takes user input from the keyboard directly as its STDIN and echos it back out to STDOUT.
+
+
+The second part of the project I found to be the most difficult part.
+
+After getting the terminal settings correct, I had to figure out how to pass the data from the keyboard(buff) e.g. STDIN, process the input to echo <cr> or <lf> to <cr><lf>, but simply send it to the child process as <lf>. We do this with a 256 byte read and go through and process the characters typed by the user and send them to the server as it was intended to be processed by the shell.
+
+After the shell receives the input from the Client (to_child[0] - keyboard/buff/STDIN of parent process), it should write it (from_child[1] - e.g. STDOUT of parent_process).
+
+
+Because we have 2 processes, we have 6 open file descriptors.
+
+We pass data between the two processes by using the pipe() system call on a data structure to_child[2], and from_child[2] as a pipe is a unidirectional mode of transferring packets between processes.
+
+Therefore we need 2 pipes:
+Parent Process:read end (to_child[0]), write end (to_child[1])
+Child Process: read end (from_child[0]), write end (from_child[1]) 
+
+
+We use the dup2(int oldfd, int newfd) to make the newFD a copy of the oldfd, closing newfd first if need be. 
+THIS BASICALLY MAKES THE FILE DESCRIPTOR FOR THE PARENT PROCESS AND CHILD PROCESS INTERCHANGABLE!
+
+Because we only take input from STDIN (the keyboard) we can close to_child[1] (as nothing needs to be written or changed, we simply take the keyboard input as it comes) and dup2 stdin to the read_end of the pipe to_child[0].
+
+The child Process reads the data from to_child[0], passes it to the shell and we want STDOUT to be output from_child[1] (the child process writes to its end of the pipe to pass back to the Parent Process). We dup  STDERR for any errors the shell may encounter to the write end from_child[1] as well to ensure we get all output from the child shell process if say for example command not found or some other error, the Parent Process should see this error as well. 
+
+We use the poll() system call to have strict alternation between    
+   a)input from the keyboard (what the user is typing)
+   b) shell receiving that input and processing it to write to STDOUT
+
+We use poll with a timeout of 0 to ensure that neither the parent process nor child process waits unnecessarily for:	a) the user to stop typing (parent process STDIN)
+    b) the shell to finish executing the commnand and write to STDOUT, STDERR respectively.  
+
+We can ensure the strict alternation by checking for corresponding events in the .revents field. This basically checks the open file descriptors to see if anything has changed. 
+   a) POLLIN - pending input (pass stdin to shell and have shell execute commands write to display in strict alternation)
+   b) POLLHUP - the socket was closed (user sent a ^C to program)  (HARVEST SHELL OUTPUT AND KILL CHILD)
+   c) POLLERR - asynchronous socket error (SO HARVEST SHELL OUTPUT AND KILL CHILD)
+
+We have the Parent Process waitpid() until the Child Process finishes processing all input from the User or a ^c or ^D was sent to the shell to indicate that the client process is done sending input to the shell.
+
+Three cases)
+a) User has stopped typing to the keyboard so read_Count == 0
+   i. EOF (normal exit for the child, but still check if any signals interrupt during child return) 
+b) User entered ^D to keyboard
+   i. pipe was closed and subsequent read() results in POLLHUP or POLLERR so collect all data in pipe and send it to shell to process
+c) Child process received a signal (e.g. BROKEN PIPE, socket closed) e.g. ^C entered to keyboard
+   i. all the data has already been processed in b) so simply harvest Child return code and signal number
+
+
+
+
+
+

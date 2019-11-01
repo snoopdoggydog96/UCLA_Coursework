@@ -1,10 +1,11 @@
-Project 0
-Warm-Up
-INTRODUCTION:
-It is not uncommon for students come into this course without basic C software development skills, and invest a great deal of time and frustrating effort in the first two projects before concluding they will not pass the course and must drop. We have created this simple warm-up to determine whether or not students are prepared to work on C programming projects. Most students should find this project to be relatively easy (a few hours of work, mostly understanding the APIs). If you do not find this project to be relatively straight-forward, you may want to reconsider whether or not you are ready to take this course.
+NAME: Anup Kar
+EMAIL: akar@g.ucla.edu
+ID: 204419149
 
-RELATION TO READING AND LECTURES:
-None. This project requires only C programming skills that incoming students should already possess.
+***TO TEST FUNCTIONALITY OF PROGRAM*** 
+***run the make dist command to create a tarball labeled lab0-204419149.tar*** 
+***run the command ./P0_check.sh 204419149 to check functionality of the program against test cases***
+
 
 PROJECT OBJECTIVES:
 ensure students have a working Linux development environment.
@@ -16,6 +17,8 @@ introduce and demonstrate the ability to return informative exit status.
 demonstrate the ability to research and exploit non-trivial APIs.
 demonstrate the ability to construct a standard Makefile.
 demonstrate the ability to write software that conforms to a Command Line Interface (CLI) specification.
+
+
 DELIVERABLES:
 A single compressed tarball (.tar.gz) containing:
 a single C source module that compiles cleanly (with gcc, with no errors or warnings).
@@ -38,6 +41,8 @@ tar(1) (and the -z option) ... program for archiving files in a tarball.
 gdb(1) (and the run, bt, list, print and break commands in particular) ... a Linux debugger for C/C++ programs.
 You will probably find understanding getopt(3) to be the most difficult part of this project. Feel free to seek out other examples/tutorials for these functions, but make sure you cite those sources in your README.
 
+
+PROGRAM OBJECTIVE:
 write a program that copies its standard input to its standard output by read(2)-ing from file descriptor 0 (until encountering an end of file) and write(2)-ing to file descriptor 1. If no errors (other than EOF) are encountered, your program should exit(2) with a return code of 0.
 Your program executable should be called lab0, and accept the following (optional) command line arguments (in any combination or order):
 
@@ -70,6 +75,8 @@ It is relatively easy to generate primitive error messages with perror(3), but i
 
 Note that to use the advanced debugging features of gdb(1) you will need to compile your program with the -g option, which adds debugging symbol table information to your program.
 
+
+
 create a Makefile that supports the following targets:
 (default) ... build the lab0 executable. To maximize comile-time error checking, you should compile your program with the -Wall and -Wextra options.
 check ... runs a quick smoke-test on whether or not the program seems to work, supports the required arguments, and properly reports success or failure.
@@ -95,49 +102,3 @@ Summary of exit codes
 2 ... unable to open input file
 3 ... unable to open output file
 4 ... caught and received SIGSEGV
-SUBMISSION:
-Your README file (for this and every lab) must include lines of the form:
-
-NAME: your name
-EMAIL: your email
-ID: your student ID
-And, if slip days are allowed on this project, and you use some:
-SLIPDAYS: your student ID,#days
-Your name, student ID, and email address should also appear as comments at the top of your Makefile and each source file.
-Your tarball should have a name of the form lab0-yourStudentID.tar.gz. You can sanity check your submission with this test script. There will be no manual regrading on this project. Submissions that do not pass the sanity check are likely to receive very low scores.
-
-We will test it on a departmental Linux server. You would be well advised to test all the functionality of your submission on that platform before submitting it.
-
-GRADING:
-Points for this project will be awarded:
-
-Value  Feature
-packaging and build
-5%	  untars expected contents
-5%	  clean build w/default action
-1%	  correct make check
-1%	  correct make clean
-1%	  correct make dist
-2%	  reasonability of README contents
-5%	  reasonability of check smoke test
-input/output features
-10%	     correctly copy input to output
-5%	     correctly implements --input
-5%	     correctly implements --output
-5%	     implements combined --input + --output
-5%	     correct handling of un-openable/creatable output file
-5%	     correct handling of non-existant input file
-5%	     correct handling of invalid arguments
-fault handling
-5%    generate (and die from) SIGSEGV
-5%    catch and report SIGSEGV
-gdb use
-5%  screen shot showing taking of segfault within gdb
-5%  screen shot showing backtrace from segfault
-5%  screen shot showing breakpoint stop before fault
-5%  screen shot showing inspection of null pointer
-code/package review
-2%	     correct argument processing
-2%	     correct file descriptor handling
-2%	     correct signal handling
-4%	     misc
