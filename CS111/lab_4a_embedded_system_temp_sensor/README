@@ -1,0 +1,66 @@
+NAME: Anup Kar
+EMAIL: akar@g.ucla.edu
+ID: 204419149
+***TO TEST FUNCTIONALITY OF PROGRAM*** 
+***run the make dist command to create a tarball labeled lab4a-204419149.tar*** 
+***run the command ./P4A_check.sh 204419149 to check functionality of the program against test cases***
+
+PROJECT OBJECTIVES:
+ensure students have a working Beaglebone.
+ensure that students can log into their Beaglebone via both USB and WIFI.
+ensure that students have the ability to transfer files to/from their Beaglebone.
+ensure students have a working Beaglebone development environment.
+ensure students have the ability to install new packages on their Beaglebone.
+This should be a simple matter of following simple steps. But if you do not have communication with a working Beaglebone development environment, you will be unable to complete the remaining embedded systems projects.
+
+DELIVERABLES:
+A single compressed tarball (.tar.gz) containing:
+a selfie (my_beaglebone.jpg) of you holding your assembled Beaglebone (showing the front of the board).
+a screen shot (connected.png) from a USB terminal command session connected to your system, showing that you gave it a name and configured network access.
+a screen shot (copy.png) from a local session in which you copy a hello world program from your laptop/desktop to your Beaglebone.
+a screen shot (build_run.png) from a WIFI SSH session in which you build and run a trivial (hello world) program.
+a screen shot (git.png) from a WIFI SSH session in which you install git and clone a repository.
+a Makefile to build the tarball.
+a README file containing the serial number of your Beaglebone and the WiFi (unless you are using a hard-wired ethernet connnection) MAC address, and a description of the above files.
+Most phones can produce .jpg images and Linux screen shots are usually .png but any of these images can be submitted in .jpg, .png or .gif format.
+
+PROJECT DESCRIPTION:
+There are a number of useful tutorials for working with the Beaglebone, which are referenced below in the various steps of the project. We strongly recommend that you read them before performing each step.
+Flash the Beaglebone with an updated version of the system software. Your TA will help you perform this operation, so consult your TA on this step. Reflashing the software has proven particularly important if you are using a Mac computer to interact with it.
+Read Introduction to the Beaglebone. This tutorial will provide information on configuring your BeagleBone's hardware and software. Follow its instructions on how to assemble it, power it up and connect it (via USB) to your personal notebook or desktop. Establish a USB terminal login session from your notebook/desktop to your Beaglebone. If you run MacOS and have not, for some reason, been able to reflash your Beaglebone, as described above, the Screen program might allow you to access the Beaglebone via USB.
+Read Linux on the Beaglebone. This provides some basic information on using Linux on the Beaglebone.
+Read WiFi, SSH, and SFTP on the Beaglebone. Follow the instructions in this tutorial to create a password for your Beaglebone and enable WiFi access to it. Change the name of your Beaglebone to studentID.lasr.cs.ucla.edu (instructions on how to do so can be found here). Then run the ifconfig command to display the IP and MAC addresses, and take a screen shot.
+Read Beaglebone Tutorial: GPIO, Interrupt, Analog and PWM. This tutorial will provide information on how to use the Grove Base Cape and sensors with your Beaglebone.
+Log in to your Beaglebone (over WIFI) via ssh (or putty or other equivalent tool).
+On your notebook/laptop, write a trivial C "Hello World" program. Follow the instructions in WiFi, SSH, and SFTP on the Beaglebone to use sftp to copy that program from your notebook/desktop to your Beaglebone. Alternately, figure out how to use scp(1) to transfer your program to the Beaglebone. If your notebook/desktop runs Windows, use PSCP to transfer the program. Take a screen shot (on your desktop/laptop) of the successful copy command.
+Use ssh(1) to connect (via WIFI) to your Beaglebone, and compile and run a simple C "Hello world." program. Take a screen shot of the compilation and execution.
+Download the git version control system onto your Beaglebone and use it to create a code repository on that Beaglebone. Use apt-get to get the git package onto the Beaglebone. You can find instructions on using apt-get at the Debian apt-get description page. Once you have installed git, use it to clone a local copy of a repository (e.g. your own github repo). Take a screen shot of the clone command and directory listing.
+
+BEAGLEBONE INFO: I rented my BeagleBone from another student off UCLA marketplace. 
+
+Serial Number: BBGW17080085 
+
+Finding Serial No.:
+Was listed on side of BeagleBone along with the physical MAC address (statically assigned to match physical address when connecting to internet)
+
+MAC Address: 2c:f7:f1:06:69:55
+
+Finding MAC Address:
+ifconfig, then looking at HWaddr of wlan0:
+
+Public IP Address used for WIFI SSH Sessions:
+192.168.1.3 (dynamically allocated by my Router so can change). 
+
+DESCRIPTION OF FILES:
+
+my_beaglebone.jpg: Picture of me with assembled BeagleBone (temperature sensors, usb-microusb cord, SD card etc.) with front of the board visible.
+
+connected.png: screenshot of USB terminal session (ssh debian@192.168.7.2) showing actually changed /etc/hosts, /etc/hostnames to 204419149.lasr.cs.ucla.edu with vim (printed hostname).
+
+copy.png: screenshot of sftp debian@192.168.1.3 hello_world.c (NOTE: use the actual WiFi Address to use sftp from local machine found from the beaglebone ifconfig command: wlan0, inet addr) 
+
+builld_run.png: screenshot of ssh debian@192.168.1.3 (NOTE: WIFI SSH SESSION, see above!) compile hello_world.c and execute
+
+git.png: screenshot of ssh debian@192.168.1.3 WIFI SSH SESSION then sudo su for root access, apt-get install git apt-get update or apt-get --fixmissing if prompted and git clone https://github.com/snoopdoggydog96/CS111.git
+
+README: this file and assosciated files and descriptions. 

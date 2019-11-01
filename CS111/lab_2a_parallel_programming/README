@@ -6,6 +6,7 @@ SLIPDAYS:2
 ***TO TEST FUNCTIONALITY OF PROGRAM*** 
 ***run the make dist command to create a tarball labeled lab2a-204419149.tar*** 
 ***run the command ./P2A_check.sh 204419149 to check functionality of the program against test cases***
+
 a. PROGRAM OBJECTIVE
 Project 2A
 Races and Synchronization
